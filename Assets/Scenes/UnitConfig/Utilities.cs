@@ -7,7 +7,7 @@ public class Utility : MonoBehaviour
     public static Vector3 MouseToTerrainPosition()
     {
         Vector3 position = Vector3.zero;
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit info, 100, LayerMask.GetMask("Level")))
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit info, 100, LayerMask.GetMask("Ground")))
             position = info.point;
         return position;
     }

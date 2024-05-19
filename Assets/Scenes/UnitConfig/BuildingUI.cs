@@ -9,15 +9,18 @@ public class BuildingUI : MonoBehaviour
     CanvasGroup canvasGroup;
     bool isPlacing = false;
     int currentIndex = 0;
+    float RotationAngle = 0;
 
     public Transform resourceGroup;
 
-    Mesh buildingPreviewMesh;
-    [SerializeField] Material buildingPreviewMat;
+    [SerializeField] const float rotationAngle = 30f;
+    GameObject buildingPreviewObject; // Instantiated building preview object
+
     private void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
     }
+
     void Start()
     {
         Button[] buttons = GetComponentsInChildren<Button>();
@@ -35,15 +38,32 @@ public class BuildingUI : MonoBehaviour
     {
         if (isPlacing)
         {
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                RotateBuilding();
+                Debug.Log(RotationAngle);
+            }
+
             Vector3 position = Utility.MouseToTerrainPosition();
-            Graphics.DrawMesh(buildingPreviewMesh, position, Quaternion.identity, buildingPreviewMat, 0);
+            if (buildingPreviewObject != null)
+                buildingPreviewObject.transform.position = position;
             if (Input.GetMouseButtonDown(0))
             {
-                BuildingManager.instance.SpawnBuilding(currentIndex, position);
+                BuildingManager.instance.SpawnBuilding(currentIndex, position, RotationAngle);
+                Destroy(buildingPreviewObject); // Destroy the preview object
                 canvasGroup.alpha = 1;
                 isPlacing = false;
+                RotationAngle = 0f;
             }
         }
+    }
+
+    void RotateBuilding()
+    {
+        if (buildingPreviewObject != null)
+            RotationAngle += 30f;
+            buildingPreviewObject.transform.Rotate(Vector3.up, rotationAngle);
     }
 
     void SelectBuilding(int index)
@@ -52,7 +72,14 @@ public class BuildingUI : MonoBehaviour
         ActorManager.instance.DeselectActors();
         canvasGroup.alpha = 0;
         isPlacing = true;
-        buildingPreviewMesh = BuildingManager.instance.GetPrefab(index).GetComponentInChildren<MeshFilter>().sharedMesh;
+
+        // Instantiate the selected building prefab for preview
+        Building selectedBuilding = BuildingManager.instance.buildingPrefabs[currentIndex];
+        if (selectedBuilding != null)
+        {
+            Destroy(buildingPreviewObject); // Destroy previous preview
+            buildingPreviewObject = Instantiate(selectedBuilding.gameObject, Vector3.zero, Quaternion.identity);
+        }
     }
 
     string GetButtonText(Building b)
@@ -64,7 +91,7 @@ public class BuildingUI : MonoBehaviour
         for (int j = 0; j < resourceAmount; j++)
             resourceString += "\n " + resourceNames[j] + " (" + b.resourceCost[j] + ")";
 
-        return "<size=23><b>" + buildingName + "</b></size>" + resourceString;
+        return "<size=30><b>" + buildingName + "</b></size>" + resourceString;
     }
 
     public void RefreshResources()

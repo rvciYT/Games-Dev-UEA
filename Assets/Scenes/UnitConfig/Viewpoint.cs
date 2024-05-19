@@ -6,12 +6,12 @@ public class TopDownCameraController : MonoBehaviour
     public float minFOV = 1f;
     public float maxFOV = 60f;
     public float zoomSpeed = 5f;
-
-    private Camera cameraToControl; 
+    public float rotationSpeed = 90f; 
+    private Camera cameraToControl;
 
     private void Start()
     {
-        cameraToControl = GetComponentInParent<Camera>(); 
+        cameraToControl = GetComponentInParent<Camera>();
 
         if (cameraToControl == null)
         {
@@ -24,25 +24,37 @@ public class TopDownCameraController : MonoBehaviour
         if (cameraToControl == null)
             return;
 
-        // Camera Movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
 
-        Vector3 movement = new Vector3(horizontalInput, 0f, verticalInput) * moveSpeed * Time.deltaTime;
+        Vector3 movement = (transform.right * horizontalInput + transform.forward * verticalInput) * moveSpeed * Time.deltaTime;
+        movement.y = 0;
         transform.Translate(movement, Space.World);
 
-        // Camera Zoom
+
         if (scrollInput != 0f)
         {
-            // Calculate new FOV
             float newFOV = cameraToControl.fieldOfView - scrollInput * zoomSpeed;
 
-            // Clamp the FOV within minFOV and maxFOV
             newFOV = Mathf.Clamp(newFOV, minFOV, maxFOV);
 
-            // Assign the new FOV
             cameraToControl.fieldOfView = newFOV;
         }
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            RotateCamera(Vector3.up);
+        }
+        if (Input.GetKey(KeyCode.E))
+        {
+            RotateCamera(Vector3.down);
+        }
+    }
+
+    private void RotateCamera(Vector3 direction)
+    {
+        float rotationAmount = rotationSpeed * Time.deltaTime;
+        transform.Rotate(direction * rotationAmount, Space.World);
     }
 }

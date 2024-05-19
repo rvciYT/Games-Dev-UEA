@@ -29,7 +29,7 @@ public class Actor : MonoBehaviour
     }
     public void Update()
     {
-        animator.SetFloat("Speed", Mathf.Clamp(agent.velocity.magnitude, 0, 1));
+       animator.SetFloat("Speed", Mathf.Clamp(agent.velocity.magnitude, 0, 1));
     }
 
     public void SetDestination(Vector3 destination)
@@ -40,15 +40,19 @@ public class Actor : MonoBehaviour
     {
         return new WaitUntil(() => !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance);
     }
-    void Attack()
+    protected void Attack()
     {
         if (damageableTarget)
-            damageableTarget.Hit(10);
+            {
+                Debug.Log("Hit!");
+                damageableTarget.Hit(10);
+            }
     }
     public void AttackTarget(Damageable target)
     {
         StopTask();
         damageableTarget = target;
+        Debug.Log(target);
 
         currentTask = StartCoroutine(StartAttack());
 
@@ -63,6 +67,7 @@ public class Actor : MonoBehaviour
                     yield return new WaitForSeconds(1);
                     if (damageableTarget)
                         animator.SetTrigger("Attack");
+                        damageableTarget.Hit(10);
                 }
 
             }

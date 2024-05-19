@@ -35,18 +35,32 @@ public class ActorManager : MonoBehaviour
 
     void Update()
     {
-        if (EventSystem.current.IsPointerOverGameObject())
-        {
-            dragging = false;
-            return;
-        }
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1))
         {
             startDrag = Utility.MouseToTerrainPosition();
             endDrag = startDrag;
         }
-        else if (Input.GetMouseButton(0))
+        else if (Input.GetMouseButtonDown(0))
+        {
+            Collider collider = Utility.CameraRay().collider;
+            if (!collider.CompareTag("Player"))
+            {
+               SetTask(); 
+            }
+            else
+            {
+                if(!Input.GetKey(KeyCode.LeftShift))
+                {
+                    SelectIndividualActor();
+                }
+                else
+                {
+                    AddToSelection();
+                }
+            }
+        }
+        else if (Input.GetMouseButton(1))
         {
             endDrag = Utility.MouseToTerrainPosition();
 
@@ -60,18 +74,13 @@ public class ActorManager : MonoBehaviour
                 selectionArea.transform.localScale = dragSize + Vector3.up;
             }
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if (Input.GetMouseButtonUp(1))
         {
             if (dragging)
             {
                 SelectActors();
                 dragging = false;
                 selectionArea.gameObject.SetActive(false);
-
-            }
-            else
-            {
-                SetTask();
             }
         }
 
@@ -96,11 +105,55 @@ public class ActorManager : MonoBehaviour
                 foreach (Actor actor in selectedActors)
                 {
                     actor.AttackTarget(damageable);
+                    Debug.Log(damageable);
                 }
             }
         }
 
 
+    }
+
+    void SelectIndividualActor()
+    {
+        RaycastHit hitInfo;
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity, actorLayer.value))
+        {
+            Actor actor = hitInfo.collider.GetComponent<Actor>();
+            if (actor != null)
+            {
+                if (selectedActors.Contains(actor))
+                {
+                    actor.visualHandler.Deselect();
+                    selectedActors.Remove(actor);
+                }
+                else
+                {
+                    DeselectActors();
+                    actor.visualHandler.Select();
+                    selectedActors.Add(actor);
+                }
+            }
+        }
+        else
+        {
+            DeselectActors();
+        }
+    }
+
+    void AddToSelection()
+    {
+        RaycastHit hitInfo;
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity, actorLayer.value))
+        {
+            Actor actor = hitInfo.collider.GetComponent<Actor>();
+            if (actor != null && !selectedActors.Contains(actor))
+            {
+                actor.visualHandler.Select();
+                selectedActors.Add(actor);
+            }
+        }
     }
 
     void SelectActors()

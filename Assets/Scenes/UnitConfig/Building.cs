@@ -32,7 +32,6 @@ public class Building : MonoBehaviour
 
         buildingTransform = transform.GetChild(0);
         buildingRender = buildingTransform.GetComponent<MeshRenderer>();
-        impulse = GetComponent<Cinemachine.CinemachineImpulseSource>();
         currentWork = 0;
         originalHeight = buildingTransform.localPosition.y;
         buildingTransform.localPosition = Vector3.down * height;
@@ -41,23 +40,8 @@ public class Building : MonoBehaviour
     {
         currentWork += work;
         buildingTransform.localPosition = Vector3.Lerp(Vector3.down * height, new Vector3(0,originalHeight,0), (float)currentWork / totalWorkToComplete);
+    }
 
-        //visual
-        buildingTransform.DOComplete();
-        buildingTransform.DOShakeScale(.5f, .2f, 10, 90, true);
-        BuildingManager.instance.PlayParticle(transform.position);
-    }
-    public bool IsFinished()
-    {
-        if (currentWork >= totalWorkToComplete && !done && buildingRender)
-        {
-            done = true;
-            buildingRender.material.DOColor(stateColors[1], "_EmissionColor", .1f).OnComplete(() => buildingRender.material.DOColor(stateColors[0], "_EmissionColor", .5f));
-            if (impulse)
-                impulse.GenerateImpulse();
-        }
-        return currentWork >= totalWorkToComplete;
-    }
     public bool CanBuild(int[] resources)
     {
         bool canBuild = true;
